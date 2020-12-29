@@ -36,6 +36,7 @@ package com.raywenderlich.android.kotlincoroutinesfundamentals
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.net.HttpURLConnection
@@ -46,21 +47,30 @@ import java.net.URL
  */
 class MainActivity : AppCompatActivity() {
 
+
   override fun onCreate(savedInstanceState: Bundle?) {
     // Switch to AppTheme for displaying the activity
     setTheme(R.style.AppTheme)
 
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
-    
-    val imageUrl = URL("https://wallpaperplay.com/walls/full/1/c/7/38027.jpg")
-    val connection = imageUrl.openConnection() as HttpURLConnection
-    connection.doInput = true
-    connection.connect()
 
-    val inputStream = connection.inputStream
-    val bitmap = BitmapFactory.decodeStream(inputStream)
 
-    image.setImageBitmap(bitmap)
+    //Create an alternative thread
+    Thread(Runnable {
+
+
+      val imageUrl = URL("https://wallpaperplay.com/walls/full/1/c/7/38027.jpg")
+      val connection = imageUrl.openConnection() as HttpURLConnection
+      connection.doInput = true
+      connection.connect()
+
+      val inputStream = connection.inputStream
+      val bitmap = BitmapFactory.decodeStream(inputStream)
+
+//      runOnUiThread { image.setImageBitmap(image) }
+
+    }).start()
+
   }
 }
