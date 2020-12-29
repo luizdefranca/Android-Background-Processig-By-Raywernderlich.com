@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
       val inputStream = connection.inputStream
       val bitmap = BitmapFactory.decodeStream(inputStream)
 
-//      runOnUiThread { image.setImageBitmap(image) }
+      runOnUiThread { image.setImageBitmap(bitmap) }
 
     }).start()
 
