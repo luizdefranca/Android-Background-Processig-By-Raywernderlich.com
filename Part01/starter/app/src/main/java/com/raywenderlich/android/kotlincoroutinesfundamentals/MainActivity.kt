@@ -34,13 +34,25 @@
 
 package com.raywenderlich.android.kotlincoroutinesfundamentals
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+
 
 /**
  * Main Screen
@@ -55,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
+/*
 
     //Create an alternative thread
     Thread(Runnable {
@@ -71,6 +84,45 @@ class MainActivity : AppCompatActivity() {
       runOnUiThread { image.setImageBitmap(bitmap) }
 
     }).start()
+*/
 
+    
+  }
+
+
+  private fun downloadImage(){
+    val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(true)
+            .setRequiresStorageNotLow(true)
+            .setRequiredNetworkType(NetworkType.NOT_ROAMING)
+            .build()
+
+    val downloadRequest = OneTimeWorkRequestBuilder<DownloadWorker>()
+            .setConstraints(constraints)
+            .build()
+
+    val workManager = WorkManager.getInstance(this)
+    workManager.enqueue(downloadRequest)
+    
+    
+    //check if the download has started
+    workManager.getWorkInfoByIdLiveData(downloadRequest.id)
+            .observe(this, Observer { info ->
+              if(info.state.isFinished){
+                val imageFile = File(externalMediaDirs.first(), "owl_image.jpg")
+                displayImage(imageFile.absolutePath)
+              }
+            })
+  }
+
+  private fun displayImage(imagePath: String) {
+    GlobalScope.launch(Dispatchers.Main){
+      val bitmap = loadImageFromFile(imagePath)
+      image.setImageBitmap(bitmap)
+    }
+  }
+
+  private suspend fun loadImageFromFile(imagePath: String) = withContext(Dispatchers.IO){
+    BitmapFactory.decodeFile(imagePath)
   }
 }
