@@ -3,6 +3,7 @@ package com.raywenderlich.android.kotlincoroutinesfundamentals
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -15,7 +16,7 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters): Work
         connection.doInput = true
         connection.connect()
 
-        val imagePath = "owl_image.jpg"
+        val imagePath = "owl_image${System.currentTimeMillis()}.jpg"
         val inputStream = connection.inputStream
         val file = File(applicationContext.externalMediaDirs.first(), imagePath)
 
@@ -29,8 +30,9 @@ class DownloadWorker(context: Context, workerParameters: WorkerParameters): Work
             }
 
             output.flush()
-            return Result.success()
-        }
 
+        }
+        val output = workDataOf("image_path" to file.absolutePath)
+        return Result.success(output)
     }
 }
