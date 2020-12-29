@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     }).start()
 */
 
-    
+    downloadImage()
   }
 
 
