@@ -96,28 +96,34 @@ class MainActivity : AppCompatActivity() {
             .setRequiresStorageNotLow(true)
             .setRequiredNetworkType(NetworkType.NOT_ROAMING)
             .build()
+
+
     val clearFilesWorker = OneTimeWorkRequestBuilder<FileClearWorker>()
             .build()
     val downloadRequest = OneTimeWorkRequestBuilder<DownloadWorker>()
+            .setConstraints(constraints)
+            .build()
+    val sepiaFilterWorker = OneTimeWorkRequestBuilder<SepiaFilterWorker>()
             .setConstraints(constraints)
             .build()
 
     val workManager = WorkManager.getInstance(this)
     workManager.beginWith(clearFilesWorker)
             .then(downloadRequest)
+            .then(sepiaFilterWorker)
             .enqueue()
 //    workManager.enqueue(downloadRequest)
     
     
     //check if the download has started
-    workManager.getWorkInfoByIdLiveData(downloadRequest.id)
+    workManager.getWorkInfoByIdLiveData(sepiaFilterWorker.id)
             .observe(this, Observer { info ->
               if(info.state.isFinished){
                 val imagePath = info.outputData.getString("image_path")
 
                 if (!imagePath.isNullOrEmpty()){
-                  val imageFile = File(externalMediaDirs.first(), "owl_image.jpg")
-                  displayImage(imageFile.absolutePath)
+//                  val imageFile = File(externalMediaDirs.first(), "owl_image.jpg")
+                  displayImage(imagePath)
                 }
               }
             })
