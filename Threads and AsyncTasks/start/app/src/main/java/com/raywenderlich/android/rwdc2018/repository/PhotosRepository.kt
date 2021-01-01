@@ -54,6 +54,10 @@ class PhotosRepository : Repository {
   }
 
   private fun FetchJsonData() {
+
+    //Instead to use a handler and a looper to update  values on main thread
+    //we can use photosLiveData.postValue() method
+    /*
     val handler = object: Handler(Looper.getMainLooper()) {
       override fun handleMessage(message: Message?){
         val bundle = message?.data
@@ -61,6 +65,9 @@ class PhotosRepository : Repository {
         photosLiveData.value = photos
       }
     }
+
+
+     */
     val runnable = Runnable {
       val photoString = PhotosUtils.photoJsonString()
       Log.i(TAG, TAG + "  -  " + photoString)
@@ -68,12 +75,14 @@ class PhotosRepository : Repository {
       val photos =  PhotosUtils.photoUrlsFromJsonString(photoString ?: "")
 
       if (photos != null) {
-        val message = Message()
+     /*   val message = Message()
         val bundle = Bundle()
         bundle.putStringArrayList(PHOTOS_KEY, photos)
         message.data = bundle
         handler.sendMessage(message)
-//        photosLiveData.value = photos
+      */
+        
+       photosLiveData.postValue(photos)
       }
     }
 
