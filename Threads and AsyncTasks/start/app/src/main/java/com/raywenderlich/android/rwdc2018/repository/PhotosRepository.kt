@@ -33,14 +33,31 @@ package com.raywenderlich.android.rwdc2018.repository
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.util.Log
+import com.raywenderlich.android.rwdc2018.app.PhotosUtils
 
 
 class PhotosRepository : Repository {
   private val photosLiveData = MutableLiveData<List<String>>()
   private val bannerLiveData = MutableLiveData<String>()
 
+  private val TAG = this.javaClass.simpleName
+
   override fun getPhotos(): LiveData<List<String>> {
+
+    FetchJsonData()
     return photosLiveData
+  }
+
+  private fun FetchJsonData() {
+    val runnable = Runnable {
+      val photoString = PhotosUtils.photoJsonString()
+      Log.i(TAG, TAG + "  -  " + photoString)
+  //      Log.i("PhotosRepository", photoString)
+      }
+
+    val thread = Thread(runnable)
+    thread.start()
   }
 
   override fun getBanner(): LiveData<String> {
