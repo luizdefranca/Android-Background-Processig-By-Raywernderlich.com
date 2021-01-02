@@ -33,6 +33,7 @@ package com.raywenderlich.android.rwdc2018.repository
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.os.AsyncTask
 import android.util.Log
 import com.raywenderlich.android.rwdc2018.app.PhotosUtils
 
@@ -44,8 +45,13 @@ class PhotosRepository : Repository {
   private val TAG = this.javaClass.simpleName
   private val PHOTOS_KEY = "PHOTOS_KEY"
   override fun getPhotos(): LiveData<List<String>> {
+    // cause we are going to use the FetchPhotoAsyncTask we are no loger using the FetchPhoto Method
+    // Instead we are going to call using the FetchPhotoAsyncTask
+    FetchPhotosAsyncTask({photos ->
+      photosLiveData.value = photos
 
-    FetchPhotos()
+    }).execute()
+   // FetchPhotos()
     return photosLiveData
   }
 
@@ -85,7 +91,12 @@ class PhotosRepository : Repository {
     thread.start()
   }
 
-  private fun fetchBanner(){
+  /*
+  this function do the same thing that FetchPhotos function. however using the AsyncTask objects instead.
+
+   */
+
+ fun fetchBanner(){
     Thread(Runnable {
         val bannerString = PhotosUtils.photoJsonString()
         val banners = PhotosUtils.bannerFromJsonString(bannerString?: "")
@@ -102,4 +113,22 @@ class PhotosRepository : Repository {
     fetchBanner()
     return bannerLiveData
   }
+
+  private class FetchPhotosAsyncTask(val callback: (List<String>) -> Unit)
+    : AsyncTask<Void, Void, List<String>>() {
+
+    override fun doInBackground(vararg params: Void?): List<String> ?{
+      val photoString = PhotosUtils.photoJsonString()
+      val photos = PhotosUtils.photoUrlsFromJsonString(photoString?: "")
+      return photos
+    }
+
+    override fun onPostExecute(result: List<String>?) {
+//      super.onPostExecute(result)
+      if (result != null){
+        callback(result)
+      }
+    }
+  }
+
 }
