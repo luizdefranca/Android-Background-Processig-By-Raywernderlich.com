@@ -33,10 +33,6 @@ package com.raywenderlich.android.rwdc2018.repository
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.util.Log
 import com.raywenderlich.android.rwdc2018.app.PhotosUtils
 
@@ -49,11 +45,11 @@ class PhotosRepository : Repository {
   private val PHOTOS_KEY = "PHOTOS_KEY"
   override fun getPhotos(): LiveData<List<String>> {
 
-    FetchJsonData()
+    FetchPhotos()
     return photosLiveData
   }
 
-  private fun FetchJsonData() {
+  private fun FetchPhotos() {
 
     //Instead to use a handler and a looper to update  values on main thread
     //we can use photosLiveData.postValue() method
@@ -65,8 +61,6 @@ class PhotosRepository : Repository {
         photosLiveData.value = photos
       }
     }
-
-
      */
     val runnable = Runnable {
       val photoString = PhotosUtils.photoJsonString()
@@ -81,7 +75,7 @@ class PhotosRepository : Repository {
         message.data = bundle
         handler.sendMessage(message)
       */
-        
+
        photosLiveData.postValue(photos)
       }
     }
@@ -91,7 +85,21 @@ class PhotosRepository : Repository {
     thread.start()
   }
 
+  private fun fetchBanner(){
+    Thread(Runnable {
+        val bannerString = PhotosUtils.photoJsonString()
+        val banners = PhotosUtils.bannerFromJsonString(bannerString?: "")
+
+      if (banners != null) {
+        bannerLiveData.postValue(banners)
+      }
+
+      }).start()
+  }
+
+
   override fun getBanner(): LiveData<String> {
+    fetchBanner()
     return bannerLiveData
   }
 }
