@@ -110,7 +110,12 @@ class PhotosRepository : Repository {
 
 
   override fun getBanner(): LiveData<String> {
-    fetchBanner()
+      // Using the FetchBannerAsyncTask instead
+//    fetchBanner()
+
+      FetchBannerAsyncTask({banner ->
+          bannerLiveData.value = banner
+      }).execute()
     return bannerLiveData
   }
 
@@ -129,6 +134,21 @@ class PhotosRepository : Repository {
         callback(result)
       }
     }
+  }
+
+  private class FetchBannerAsyncTask(val callback: (String) -> Unit)
+      : AsyncTask<Void, Void, String>(){
+      override fun doInBackground(vararg params: Void?): String? {
+          val bannerString = PhotosUtils.photoJsonString()
+          return PhotosUtils.bannerFromJsonString(bannerString?: "")
+      }
+
+      override fun onPostExecute(result: String?) {
+          if (result != null) {
+              callback(result)
+          }
+      }
+
   }
 
 }
