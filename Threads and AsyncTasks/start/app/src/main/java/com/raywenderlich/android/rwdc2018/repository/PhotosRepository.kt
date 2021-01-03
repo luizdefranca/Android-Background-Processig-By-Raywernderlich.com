@@ -31,11 +31,21 @@
 
 package com.raywenderlich.android.rwdc2018.repository
 
+import android.app.Application
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.content.ComponentName
+import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.AsyncTask
 import android.util.Log
 import com.raywenderlich.android.rwdc2018.app.PhotosUtils
+import com.raywenderlich.android.rwdc2018.app.RWDC2018Application
+import com.raywenderlich.android.rwdc2018.services.LogJobService
+import com.raywenderlich.android.rwdc2018.services.PhotoJobService
+import java.security.AccessController.getContext
 
 
 class PhotosRepository : Repository {
@@ -44,6 +54,11 @@ class PhotosRepository : Repository {
 
   private val TAG = this.javaClass.simpleName
   private val PHOTOS_KEY = "PHOTOS_KEY"
+
+    init {
+        scheduleLogJobService()
+        scheduleFetchJob()
+    }
   override fun getPhotos(): LiveData<List<String>> {
     // cause we are going to use the FetchPhotoAsyncTask we are no loger using the FetchPhoto Method
     // Instead we are going to call using the FetchPhotoAsyncTask
@@ -91,6 +106,35 @@ class PhotosRepository : Repository {
     thread.start()
   }
 
+    //JobService Methods
+
+    private fun scheduleFetchJob(){
+        val jobScheduler = RWDC2018Application.getAppContext()
+                .getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+//        val jobInfo = JobInfo.Builder(1000,
+//        ComponentName(Application().applicationContext, PhotoJobService::class.java))
+        val componentName = ComponentName(RWDC2018Application.getAppContext(), PhotoJobService::class.java)
+
+
+        val jobInfo = JobInfo.Builder(1000, componentName)
+                .setPeriodic(900000)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .build()
+
+        jobScheduler.schedule(jobInfo)
+
+    }
+
+    private fun scheduleLogJobService (){
+        val jobScheduler = RWDC2018Application.getAppContext()
+                .getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        val componentName = ComponentName(RWDC2018Application.getAppContext(), LogJobService::class.java)
+        val jobInfo = JobInfo.Builder(1001, componentName)
+                .setPeriodic(900000)
+                .build()
+        jobScheduler.schedule(jobInfo)
+    }
+
   /*
   this function do the same thing that FetchPhotos function. however using the AsyncTask objects instead.
 
@@ -118,6 +162,9 @@ class PhotosRepository : Repository {
       }).execute()
     return bannerLiveData
   }
+
+
+    // *******   AsyncTask classes *******
 
   private class FetchPhotosAsyncTask(val callback: (List<String>) -> Unit)
     : AsyncTask<Void, Void, List<String>>() {
